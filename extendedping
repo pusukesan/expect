@@ -1,0 +1,77 @@
+#!/usr/bin/expect
+
+set USER "cisco"
+set PW "cisco"
+set HOST [lindex $argv 0]
+set ETHFILE [lindex $argv 1]
+set SOURCE "xxx.xxx.xxx.xxx sourceaddr"
+ 
+set timeout 10
+ 
+spawn telnet ${HOST}
+expect {
+    "Username:" {
+        send "${USER}\n"
+    }
+}
+expect {
+    "Password:" {
+        send "${PW}\n"
+    }
+}
+ 
+log_file logfile
+expect {
+    "\>" {
+        send "enable\n"
+    }
+}
+expect {
+    "Password:" {
+        send "${PW}\n"
+    }
+}
+ 
+set fileID [open $ETHFILE]
+ 
+while {! [eof $fileID]} {
+    set ethline [gets $fileID]
+    expect {
+        "\#" {
+      send "ping\n"
+	    expect ":" #repeat count
+	    send "\n"
+	    expect ":" #target ip address
+	    send "${ethline}\n"
+	    expect ":" #repeat count
+	    send "\n" 
+	    expect ":" #datagram size
+	    send "\n"
+	    expect ":" #timeout in seconds
+	    send "\n"
+	    expect ":" #extended commands
+	    send "y\n"
+      expect ":" #source address or interface
+	    send "${SOURCE}\n"
+	    expect ":" #type of service
+	    send "\n"
+	    expect ":" #set df bit in iP header
+	    send "\n"
+	    expect ":" #validate reply data
+	    send "\n"
+	    expect ":" #data pattern:
+	    send "\n"
+	    expect ":" #loose etc
+	    send "\n"
+	    expect ":" #sweep range
+	    send "\n"
+        }
+ 
+    }
+}
+log_file
+expect {
+    "\#" {
+        exit 0
+    }
+}
