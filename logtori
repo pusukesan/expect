@@ -1,0 +1,50 @@
+#!/usr/bin/expect
+
+set USER "cisco"
+set PW "cisco"
+set HOST [lindex $argv 0]
+set SHOWLINE [lindex $argv 1]
+ 
+set timeout 10
+ 
+spawn telnet ${HOST}
+expect {
+    "Username:" {
+        send "${USER}\n"
+    }
+}
+expect {
+    "Password:" {
+        send "${PW}\n"
+    }
+}
+ 
+log_file logfile
+expect {
+    "\>" {
+        send "enable\n"
+    }
+}
+expect {
+    "Password:" {
+        send "${PW}\n"
+    }
+}
+ 
+set fileID [open $SHOWLINE]
+ 
+while {! [eof $fileID]} {
+    set showline [gets $fileID]
+    expect {
+        "\#" {
+            send "${showline}\n"
+        }
+ 
+    }
+}
+log_file
+expect {
+    "\#" {
+        exit 0
+    }
+}
